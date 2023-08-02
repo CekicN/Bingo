@@ -1,0 +1,23 @@
+.marked {
+    background-color: #aaffaa;
+  }
+
+.player-board{
+  display: flex;
+  flex-wrap: wrap;
+  width: 200px; 
+  margin: 20px;
+}
+
+.userNumber
+{
+  width: 20%; 
+  height: 20%;
+  border: 1px solid black;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 20px;
+}
+.nadjen_bg{
+  background-color: green;
+}
