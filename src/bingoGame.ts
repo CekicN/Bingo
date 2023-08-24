@@ -1,35 +1,95 @@
-import { BehaviorSubject, Subject, concatAll, delay, distinct, from, interval, map, of, scan, take, tap } from "rxjs";
+import { BehaviorSubject, Observable, Subject, combineLatest, concatAll, delay, distinct, from, interval, map, merge, of, scan, switchMap, take, takeUntil, takeWhile, tap } from "rxjs";
 import { User } from "./userModel";
+import { ticket } from "./ticketModel";
 
 
 const numberDisplay = document.querySelector('#number-display');
-
+const playerBoard = document.querySelector('#players');
 export class BingoGame{
-    public userSubject:Subject<User>;
+    public userSubject:BehaviorSubject<User>;
     public numbers:Subject<number>;
-    numberGenerator$:any!;
+    private stopGame$:Subject<boolean>;
+    public tickets$:Subject<ticket>
+
     constructor()
     {
-        this.userSubject = new Subject<User>();
+        this.userSubject = new BehaviorSubject<User>(null);
         this.numbers = new Subject<number>();
+        this.stopGame$ = new Subject();
+        this.tickets$ = new Subject<ticket>();
     }
 
     startGame()
     {
-        this.generateNumbers().pipe(take(75)).subscribe((number) => {
-            let lastNum = number.at(number.length-1);
-            this.numbers.next(lastNum);
-            this.drawNumber(lastNum);
+        const generatedNumber$ = this.generateNumbers();
+        generatedNumber$.pipe(
+            takeUntil(this.stopGame$),
+            take(75)
+            )
+        this.tickets$.subscribe((ticket) => {
+            console.log("ticket");
+            this.drawTable(ticket);
         })
+        combineLatest([this.tickets$, generatedNumber$]).pipe(
+            map(([ticket, generatedNumbers]) => {
+                const generatedNumber = generatedNumbers[generatedNumbers.length-1]
+                this.drawNumber(generatedNumber);
+                if(ticket.listOfNumbers.includes(generatedNumber))
+                {
+                    let div = playerBoard.querySelector(`#div_${generatedNumber}`);
+                    div.classList.add("nadjen_bg");
+                }
+            })
+        ).subscribe();
 
-        return of(null);
+        const winningTicket$ = this.tickets$.pipe(
+            switchMap((ticket) => {
+                console.log(ticket);
+              return generatedNumber$.pipe(
+                scan((acc, generatedNumbers) => {
+                    const generatedNumber = generatedNumbers[generatedNumbers.length-1]
+                    if (ticket.listOfNumbers.includes(generatedNumber)) {
+                        acc.push(generatedNumber);
+                    }
+                    return acc;
+                }, []),
+                map((winningNumbers) => {
+                    const winner = winningNumbers.length >= 15;
+                    if(winner)
+                    {
+                        console.log(winner, ticket);
+                    }
+
+                    return winner;
+                })
+              );
+            })
+          ).subscribe();
+          
+          
+          
+          
+          
+
+        this.userSubject.subscribe((user) => {
+           
+            
+
+            // let winner = new BehaviorSubject<number>(0);
+            // winner.subscribe((num) => {
+            //   if(num === 15)
+            //   {
+            //     this.stopGame();
+            //   }
+            // })
+          })
     } 
-    unsubscribe()
+    
+    stopGame()
     {
-        this.numberGenerator$.unsubscribe();
+        this.stopGame$.next(true);
     }
-
-    generateNumberForUser():number[]
+    generateNumberForTicket():ticket
     {
         let listOfNumbers:number[] = [];
 
@@ -37,24 +97,29 @@ export class BingoGame{
         {
             listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
         }
+        const ticket:ticket={
+            listOfNumbers
+        }
+        return ticket;
+    }
 
-        return listOfNumbers;
+    addTicket()
+    {
+        this.tickets$.next(this.generateNumberForTicket());
     }
 
     logUser(name:String, price_:number)
     {
+        this.tickets$.pipe()
         let user:User = {
             username: name,
-            price: price_,
-            listOfNumbers:[]
+            price: price_
         };
         fetch("http://localhost:3000/Users/"+name.toString()).then(p => {
             if(p.ok)
             {
                 p.json().then(q => {
                     user = q
-                    user.listOfNumbers = this.generateNumberForUser();
-                    console.log("Ima user")
                     this.userSubject.next(user);
                 })
                 
@@ -74,12 +139,7 @@ export class BingoGame{
                         if(p.clone().ok)
                         {
                             p.clone().json().then(q => {
-                                console.log(p.json());
-                                console.log(q);
                                 user = q;
-                                user.listOfNumbers = this.generateNumberForUser();
-                                console.log("Nema user")
-                                
                                 this.userSubject.next(user);
                                 
                             })
@@ -106,7 +166,7 @@ export class BingoGame{
     }
     generateNumbers()
     {
-        numberGenerator$ = interval(100).pipe(
+        const numberGenerator$ = interval(500).pipe(
             map(() => Math.floor(Math.random() * 90 + 1)),
             distinct(),
             scan((acc, curr) => {
@@ -117,5 +177,19 @@ export class BingoGame{
             }, [])
           );
         return numberGenerator$;
+    }
+    drawTable(ticket:ticket)
+    {
+        let d = document.createElement("div");
+        d.className = "player-board"
+        playerBoard.appendChild(d);
+
+        ticket.listOfNumbers.forEach((n) => {
+            let div = document.createElement('div');
+            div.textContent = n.toString();
+            div.className = "userNumber"
+            div.id = `div_${n}`
+            d.appendChild(div);
+        })
     }
 }

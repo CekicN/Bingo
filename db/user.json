@@ -2,18 +2,7 @@
   "Users": [
     {
       "username": "Nikola",
-      "price": 100,
-      "listOfNumbers": []
-    },
-    {
-      "username": "dad",
-      "price": 100,
-      "listOfNumbers": []
-    },
-    {
-      "username": "xd",
-      "price": 100,
-      "listOfNumbers": []
+      "price": 100
     }
   ]
 }
