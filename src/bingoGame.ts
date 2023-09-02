@@ -1,15 +1,20 @@
-import { BehaviorSubject, Observable, Subject, combineLatest, concatAll, delay, distinct, from, interval, map, merge, of, scan, switchMap, take, takeUntil, takeWhile, tap } from "rxjs";
+import { BehaviorSubject, Observable, Subject, combineLatest, concatAll, delay, distinct, finalize, from, interval, map, merge, of, scan, switchMap, take, takeUntil, takeWhile, tap } from "rxjs";
 import { User } from "./userModel";
 import { ticket } from "./ticketModel";
 
 
 const numberDisplay = document.querySelector('#number-display');
-const playerBoard = document.querySelector('#players');
+const playerBoard = document.querySelector('#tickets');
+let startBtn:HTMLButtonElement = document.querySelector('#start-btn');
+let usernameInput:HTMLInputElement = document.querySelector('#username');
+let numOfTicketsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#numOfTickets'));
+let coinsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#coins'));
 export class BingoGame{
     public userSubject:BehaviorSubject<User>;
     public numbers:Subject<number>;
     private stopGame$:Subject<boolean>;
     public tickets$:Subject<ticket>
+    private ticketId:number;
 
     constructor()
     {
@@ -17,20 +22,26 @@ export class BingoGame{
         this.numbers = new Subject<number>();
         this.stopGame$ = new Subject();
         this.tickets$ = new Subject<ticket>();
+        this.ticketId = 0;
     }
 
     startGame()
     {
+        const coins = parseInt(coinsInput.value);
+        const numOfTickets = parseInt(numOfTicketsInput.value);
+        if(startBtn != null && usernameInput != null)
+        {
+            startBtn.parentElement.removeChild(startBtn);
+            usernameInput.parentElement.removeChild(usernameInput);
+            numOfTicketsInput.parentElement.removeChild(numOfTicketsInput);
+            coinsInput.parentElement.removeChild(coinsInput);
+        }
         const generatedNumber$ = this.generateNumbers();
-        generatedNumber$.pipe(
-            takeUntil(this.stopGame$),
-            take(75)
-            )
         this.tickets$.subscribe((ticket) => {
             console.log("ticket");
             this.drawTable(ticket);
         })
-        combineLatest([this.tickets$, generatedNumber$]).pipe(
+        const combined$ = combineLatest([this.tickets$, generatedNumber$]).pipe(
             map(([ticket, generatedNumbers]) => {
                 const generatedNumber = generatedNumbers[generatedNumbers.length-1]
                 this.drawNumber(generatedNumber);
@@ -39,8 +50,38 @@ export class BingoGame{
                     let div = playerBoard.querySelector(`#div_${generatedNumber}`);
                     div.classList.add("nadjen_bg");
                 }
+                return generatedNumbers;
             })
-        ).subscribe();
+        )
+        
+        const subscription = combined$.subscribe((value) => {
+            if(value.length >= 75)
+            {
+                const winTickets = document.querySelectorAll(".win");
+                console.log(winTickets.length);
+                //isplata para korisniku
+                let pay = this.userSubject.value.price + (winTickets.length - numOfTickets) * coins;
+                pay += coins*0.2;
+                const name = this.userSubject.value.username;
+                const user:User = {
+                    price:pay,
+                    username:name
+                }
+                this.userSubject.next(user);
+                
+                fetch("http://localhost:3000/Users/"+name.toString(), {
+                    method:'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body:JSON.stringify(user)
+                }).then(p => p.json()
+                  .then(q => console.log(q)))
+
+                subscription.unsubscribe();
+            }
+        });
+
 
         const winningTicket$ = this.tickets$.pipe(
             switchMap((ticket) => {
@@ -57,7 +98,8 @@ export class BingoGame{
                     const winner = winningNumbers.length >= 15;
                     if(winner)
                     {
-                        console.log(winner, ticket);
+                        const win = <HTMLDivElement>document.querySelector(`#win_${ticket.id}`);
+                        win.className = "win";
                     }
 
                     return winner;
@@ -66,23 +108,7 @@ export class BingoGame{
             })
           ).subscribe();
           
-          
-          
-          
-          
-
-        this.userSubject.subscribe((user) => {
-           
-            
-
-            // let winner = new BehaviorSubject<number>(0);
-            // winner.subscribe((num) => {
-            //   if(num === 15)
-            //   {
-            //     this.stopGame();
-            //   }
-            // })
-          })
+         
     } 
     
     stopGame()
@@ -98,7 +124,9 @@ export class BingoGame{
             listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
         }
         const ticket:ticket={
-            listOfNumbers
+            id:this.ticketId++,
+            listOfNumbers,
+            win:false
         }
         return ticket;
     }
@@ -166,7 +194,7 @@ export class BingoGame{
     }
     generateNumbers()
     {
-        const numberGenerator$ = interval(500).pipe(
+        const numberGenerator$ = interval(100).pipe(
             map(() => Math.floor(Math.random() * 90 + 1)),
             distinct(),
             scan((acc, curr) => {
@@ -174,15 +202,20 @@ export class BingoGame{
                 return acc;
                 }
                 return [...acc, curr];
-            }, [])
+            }, []),
+            take(75)
           );
         return numberGenerator$;
     }
     drawTable(ticket:ticket)
     {
-        let d = document.createElement("div");
-        d.className = "player-board"
-        playerBoard.appendChild(d);
+        
+        let table = createDiv(playerBoard, "table");
+
+        let d = createDiv(table, "player-board");
+
+        let checkWin = createDiv(table, "checkWin");
+        checkWin.id = `win_${ticket.id}`;
 
         ticket.listOfNumbers.forEach((n) => {
             let div = document.createElement('div');
@@ -192,4 +225,12 @@ export class BingoGame{
             d.appendChild(div);
         })
     }
+}
+
+function createDiv(parent:Element, className:string)
+{
+    let d = document.createElement("div");
+    d.className = className;
+    parent.appendChild(d);   
+    return d;
 }

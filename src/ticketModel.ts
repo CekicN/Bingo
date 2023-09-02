@@ -1,3 +1,5 @@
 export interface ticket{
-    listOfNumbers:Number[]
+    id:number,
+    listOfNumbers:Number[],
+    win:boolean
 }
