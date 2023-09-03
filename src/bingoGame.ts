@@ -54,7 +54,7 @@ export class BingoGame{
             })
         )
         
-        const subscription = combined$.subscribe((value) => {
+        const subscription = combined$.subscribe(async (value) => {
             if(value.length >= 75)
             {
                 const winTickets = document.querySelectorAll(".win");
@@ -69,7 +69,7 @@ export class BingoGame{
                 }
                 this.userSubject.next(user);
                 
-                fetch("http://localhost:3000/Users/"+name.toString(), {
+                await fetch("http://localhost:3000/Users/"+name.toString(), {
                     method:'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -77,6 +77,7 @@ export class BingoGame{
                     body:JSON.stringify(user)
                 }).then(p => p.json()
                   .then(q => console.log(q)))
+                  .catch(err => console.log(err));
 
                 subscription.unsubscribe();
             }
@@ -99,6 +100,7 @@ export class BingoGame{
                     if(winner)
                     {
                         const win = <HTMLDivElement>document.querySelector(`#win_${ticket.id}`);
+                        ticket.win = true;
                         win.className = "win";
                     }
 
@@ -183,15 +185,6 @@ export class BingoGame{
             }
             })
     }
-    drawNumber(number:number)
-    {   
-        let item = numberDisplay.querySelector(".numberItem");
-        numberDisplay.removeChild(item);
-        var div = document.createElement('div');
-        div.textContent = number.toString();
-        div.className = "numberItem";
-        numberDisplay.appendChild(div);
-    }
     generateNumbers()
     {
         const numberGenerator$ = interval(100).pipe(
@@ -206,6 +199,15 @@ export class BingoGame{
             take(75)
           );
         return numberGenerator$;
+    }
+    drawNumber(number:number)
+    {   
+        let item = numberDisplay.querySelector(".numberItem");
+        numberDisplay.removeChild(item);
+        var div = document.createElement('div');
+        div.textContent = number.toString();
+        div.className = "numberItem";
+        numberDisplay.appendChild(div);
     }
     drawTable(ticket:ticket)
     {
