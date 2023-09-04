@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --watch --config webpack.config.js",
-    "api":"json-server --watch ./db/user.json --id username"
+    "api": "json-server --watch ./db/user.json --id username"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +18,7 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
+    "bootstrap": "^5.3.1",
     "rxjs": "^7.8.0"
   }
 }

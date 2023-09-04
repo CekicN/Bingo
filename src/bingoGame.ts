@@ -9,6 +9,10 @@ let startBtn:HTMLButtonElement = document.querySelector('#start-btn');
 let usernameInput:HTMLInputElement = document.querySelector('#username');
 let numOfTicketsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#numOfTickets'));
 let coinsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#coins'));
+let selectMode:HTMLSelectElement = document.querySelector("#mode");
+
+let form:HTMLElement =  document.querySelector("form");
+
 export class BingoGame{
     public userSubject:BehaviorSubject<User>;
     public numbers:Subject<number>;
@@ -29,13 +33,8 @@ export class BingoGame{
     {
         const coins = parseInt(coinsInput.value);
         const numOfTickets = parseInt(numOfTicketsInput.value);
-        if(startBtn != null && usernameInput != null)
-        {
-            startBtn.parentElement.removeChild(startBtn);
-            usernameInput.parentElement.removeChild(usernameInput);
-            numOfTicketsInput.parentElement.removeChild(numOfTicketsInput);
-            coinsInput.parentElement.removeChild(coinsInput);
-        }
+        form.parentElement.removeChild(form);
+        
         const generatedNumber$ = this.generateNumbers();
         this.tickets$.subscribe((ticket) => {
             console.log("ticket");
@@ -69,15 +68,12 @@ export class BingoGame{
                 }
                 this.userSubject.next(user);
                 
-                await fetch("http://localhost:3000/Users/"+name.toString(), {
-                    method:'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body:JSON.stringify(user)
-                }).then(p => p.json()
-                  .then(q => console.log(q)))
-                  .catch(err => console.log(err));
+                // await fetch("http://localhost:3000/Users/"+name.toString(), {
+                //     method:'PUT',
+                //     body:JSON.stringify(user)
+                // }).then(p => p.json()
+                //   .then(q => console.log(q)))
+                //   .catch(err => console.log(err));
 
                 subscription.unsubscribe();
             }
@@ -120,11 +116,30 @@ export class BingoGame{
     generateNumberForTicket():ticket
     {
         let listOfNumbers:number[] = [];
-
-        for(let i = 0; i< 25; i++)
+        let i = 0;
+        switch(selectMode.value)
         {
-            listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
+            case "1":
+                while(i < 25)
+                {
+                    listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
+                    i++;
+                }
+            break;
+            case "2":
+                while(i < 25)
+                {
+                    listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
+                }
+            break;
+            case "3":
+                while(i < 25)
+                {
+                    listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
+                }
+            break;
         }
+        
         const ticket:ticket={
             id:this.ticketId++,
             listOfNumbers,
