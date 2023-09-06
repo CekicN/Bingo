@@ -44,7 +44,16 @@ export class BingoGame{
             map(([ticket, generatedNumbers]) => {
                 const generatedNumber = generatedNumbers[generatedNumbers.length-1]
                 this.drawNumber(generatedNumber);
-                if(ticket.listOfNumbers.includes(generatedNumber))
+                let listOfNumbers = ticket.listOfNumbers;
+                if(selectMode.value == "2")
+                {
+                    listOfNumbers = listOfNumbers.filter((val:number) => val % 2 == 0);
+                }
+                else if(selectMode.value == "3")
+                {
+                    listOfNumbers = listOfNumbers.filter((val:number) => val % 2 != 0);
+                }
+                if(listOfNumbers.includes(generatedNumber))
                 {
                     let div = playerBoard.querySelector(`#div_${generatedNumber}`);
                     div.classList.add("nadjen_bg");
@@ -53,28 +62,52 @@ export class BingoGame{
             })
         )
         
-        const subscription = combined$.subscribe(async (value) => {
+        const subscription = combined$.subscribe((value) => {
             if(value.length >= 75)
             {
                 const winTickets = document.querySelectorAll(".win");
                 console.log(winTickets.length);
                 //isplata para korisniku
-                let pay = this.userSubject.value.price + (winTickets.length - numOfTickets) * coins;
-                pay += coins*0.2;
-                const name = this.userSubject.value.username;
-                const user:User = {
-                    price:pay,
-                    username:name
-                }
-                this.userSubject.next(user);
-                
-                // await fetch("http://localhost:3000/Users/"+name.toString(), {
-                //     method:'PUT',
-                //     body:JSON.stringify(user)
-                // }).then(p => p.json()
-                //   .then(q => console.log(q)))
-                //   .catch(err => console.log(err));
+                if(winTickets.length > 0)
+                {
+                    let pay = this.userSubject.value.price + (winTickets.length - numOfTickets) * coins;
+                    if(selectMode.value == "2")
+                    {
+                        pay += coins * 1.5;
+                    }
+                    else if(selectMode.value == "3")
+                    {
+                        pay += coins * 1.5;
+                    }
+                    else
+                    {
+                        pay += coins*0.2;
+                    }
+                    
+                    
+                    const name = this.userSubject.value.username;
+                    
+                    
+                    const user:User = {
+                        username:name,
+                        price:pay
+                    }
+                    this.userSubject.next(user);
+                    alert("Zaradjeno " + pay);
+                    fetch("http://localhost:3000/Users/"+name.toString(), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body:JSON.stringify(user)
+                    }).then(p => p.json()
+                    .then(q => console.log(q)))
+                    .catch(err => console.log(err));
 
+                }
+                else
+                {
+                    alert("Izgubili ste");
+                    location.reload();
+                }
                 subscription.unsubscribe();
             }
         });
@@ -86,13 +119,34 @@ export class BingoGame{
               return generatedNumber$.pipe(
                 scan((acc, generatedNumbers) => {
                     const generatedNumber = generatedNumbers[generatedNumbers.length-1]
-                    if (ticket.listOfNumbers.includes(generatedNumber)) {
+                    let listOfNumbers = ticket.listOfNumbers;
+                    if(selectMode.value == "2")
+                    {
+                        listOfNumbers = listOfNumbers.filter((val:number) => val % 2 == 0);
+                    }
+                    else if(selectMode.value == "3")
+                    {
+                        listOfNumbers = listOfNumbers.filter((val:number) => val % 2 != 0);
+                    }
+                    if (listOfNumbers.includes(generatedNumber)) {
                         acc.push(generatedNumber);
                     }
                     return acc;
                 }, []),
                 map((winningNumbers) => {
-                    const winner = winningNumbers.length >= 15;
+                    let winner;
+                    if(selectMode.value == "2")
+                    {
+                        winner = winningNumbers.length >= 5;
+                    }
+                    else if(selectMode.value == "3")
+                    {
+                        winner = winningNumbers.length >= 5;
+                    }
+                    else
+                    {
+                        winner = winningNumbers.length >= 15;
+                    }
                     if(winner)
                     {
                         const win = <HTMLDivElement>document.querySelector(`#win_${ticket.id}`);
@@ -117,29 +171,11 @@ export class BingoGame{
     {
         let listOfNumbers:number[] = [];
         let i = 0;
-        switch(selectMode.value)
+        while(i < 25)
         {
-            case "1":
-                while(i < 25)
-                {
-                    listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
-                    i++;
-                }
-            break;
-            case "2":
-                while(i < 25)
-                {
-                    listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
-                }
-            break;
-            case "3":
-                while(i < 25)
-                {
-                    listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
-                }
-            break;
+            listOfNumbers.push(Math.floor(Math.random() * 90 + 1));
+            i++;
         }
-        
         const ticket:ticket={
             id:this.ticketId++,
             listOfNumbers,

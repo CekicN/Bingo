@@ -1,7 +1,8 @@
 {
   "Users": [
     {
-      "username": "Nikola"
+      "username": "Nikola",
+      "price": 119
     }
   ]
 }
