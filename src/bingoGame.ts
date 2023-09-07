@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, Subject, combineLatest, concatAll, delay, distinct, finalize, from, interval, map, merge, of, scan, switchMap, take, takeUntil, takeWhile, tap } from "rxjs";
+import { BehaviorSubject, Observable, Subject, combineLatest, concatAll, delay, distinct, finalize, from, interval, map, merge, mergeMap, of, scan, switchMap, take, takeUntil, takeWhile, tap } from "rxjs";
 import { User } from "./userModel";
 import { ticket } from "./ticketModel";
 
@@ -36,10 +36,12 @@ export class BingoGame{
         form.parentElement.removeChild(form);
         
         const generatedNumber$ = this.generateNumbers();
+
         this.tickets$.subscribe((ticket) => {
             console.log("ticket");
             this.drawTable(ticket);
         })
+
         const combined$ = combineLatest([this.tickets$, generatedNumber$]).pipe(
             map(([ticket, generatedNumbers]) => {
                 const generatedNumber = generatedNumbers[generatedNumbers.length-1]
@@ -115,11 +117,10 @@ export class BingoGame{
 
         const winningTicket$ = this.tickets$.pipe(
             switchMap((ticket) => {
-                console.log(ticket);
               return generatedNumber$.pipe(
                 scan((acc, generatedNumbers) => {
                     const generatedNumber = generatedNumbers[generatedNumbers.length-1]
-                    let listOfNumbers = ticket.listOfNumbers;
+                    let listOfNumbers = ticket.listOfNumbers;//classic
                     if(selectMode.value == "2")
                     {
                         listOfNumbers = listOfNumbers.filter((val:number) => val % 2 == 0);
@@ -145,7 +146,7 @@ export class BingoGame{
                     }
                     else
                     {
-                        winner = winningNumbers.length >= 15;
+                        winner = winningNumbers.length >= 15;//classic
                     }
                     if(winner)
                     {

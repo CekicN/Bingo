@@ -9,19 +9,65 @@ let numOfTicketsInput:HTMLInputElement = (<HTMLInputElement>document.querySelect
 
 numberDisplay.style.display = "none";
 let bingo = new BingoGame();
-startBtn.addEventListener('click', (e:Event) => {
-  e.preventDefault();
-  numberDisplay.style.display = "flex";
-  bingo.startGame();
 
-  bingo.logUser(usernameInput.value, 100);
+let cb:boolean = false;
+let username:boolean = false;
 
-  let numOfTickets:number = parseInt(numOfTicketsInput.value);
-  for(let i = 0; i < numOfTickets; i++)
+async function startGame()
+{
+  await inputUsername();
+  await isChecked();
+
+  if(cb && username)
   {
-    bingo.addTicket();
+    numberDisplay.style.display = "flex";
+    bingo.startGame();
+
+    bingo.logUser(usernameInput.value, 100);
+
+    let numOfTickets:number = parseInt(numOfTicketsInput.value);
+    for(let i = 0; i < numOfTickets; i++)
+    {
+      bingo.addTicket();
+    }
   }
-})
+}
+function isChecked()
+{
+  return new Promise<void>((resolve) => {
+      const checkBox = document.getElementById('checkbox') as HTMLInputElement;
+      checkBox.addEventListener('click', () => {
+          if (checkBox.checked) {
+              cb = true;
+          } else {
+              cb = false;
+          }
+          resolve();
+      });
+  });
+}
+
+function inputUsername()
+{
+  return new Promise<void>((resolve) => {
+    console.log(usernameInput);
+    usernameInput.addEventListener('input', () => {
+        if(usernameInput.value != "")
+        {
+          username = true;
+        }
+        else
+        {
+          username = false;
+        }
+        resolve();
+    });
+});
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  startGame();
+});
 
 
 
