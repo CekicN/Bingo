@@ -29,22 +29,26 @@
                         <form>
                             <div class="form-group pt-3">
                                 <div class="input-field">
+                                    <label>Username: </label>
                                     <input type="text" name="user" id="username" placeholder="Name"/>
                                 </div>
                             </div>
                             <hr>
                             <div class="form-group pt-3">
                                 <div class="input-field">
-                                    <input type="number" value="1" name="numOfTickets" id="numOfTickets"/>
+                                    <label>numOfTickets: </label>
+                                    <input type="number" min="1" value="1" name="numOfTickets" id="numOfTickets"/>
                                 </div>
                             </div>
                             <div class="form-group pt-3">
                                 <div class="input-field">
+                                    <label>Coins: </label>
                                     <input type="number" value="10" step="10" min="10" max="100" name="coins" id="coins"/>
                                 </div>
                             </div>
                             <div class="form-group pt-3">
                                 <div class="input-field">
+                                    <label>Mode: </label>
                                     <select id="mode" class="form-select">
                                         <option value="1">Classic</option>
                                         <option value="2">Even</option>
@@ -53,7 +57,8 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <button class="btn btn-primary" id="start-btn">Start Game</button>
+                                <label for="">Start Game</label>
+                                <input type="checkbox" id="checkbox">
                             </div>
                         </form>
                         
