@@ -1,4 +1,4 @@
-import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, combineLatestAll, concatAll, concatMap, delay, distinct, finalize, from, interval, map, merge, mergeMap, of, scan, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from "rxjs";
+import { BehaviorSubject, Observable, Subject, Subscription, combineLatest, combineLatestAll, concatAll, concatMap, delay, distinct, finalize, from, fromEvent, interval, map, merge, mergeMap, of, scan, switchMap, take, takeUntil, takeWhile, tap, withLatestFrom } from "rxjs";
 import { User } from "./userModel";
 import { ticket } from "./ticketModel";
 
@@ -6,11 +6,12 @@ import { ticket } from "./ticketModel";
 const numberDisplay = document.querySelector('#number-display');
 const playerBoard = document.querySelector('#tickets');
 let startBtn:HTMLButtonElement = document.querySelector('#start-btn');
+let resetBtn:HTMLButtonElement = document.querySelector('#reset');
+
 let usernameInput:HTMLInputElement = document.querySelector('#username');
 let numOfTicketsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#numOfTickets'));
 let coinsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#coins'));
 let selectMode:HTMLSelectElement = document.querySelector("#mode");
-
 let form:HTMLElement =  document.querySelector("form");
 
 function checkNumberWithTickets(number:number, tickets:ticket) {
@@ -40,13 +41,24 @@ export class BingoGame{
         const numOfTickets = parseInt(numOfTicketsInput.value);
         form.parentElement.removeChild(form);
 
+        const resetBtn$ = fromEvent(resetBtn, 'click');
 
         const generatedNumber$ = this.generateNumbers();
 
-        generatedNumber$.subscribe({
+        merge(generatedNumber$, resetBtn$).pipe(
+            takeUntil(this.stopGame$)
+            ).subscribe({
             next: (val) => {
-                const generatedNumber = val[val.length-1]
-                this.drawNumber(generatedNumber);
+                if(Array.isArray(val))
+                {
+                    const generatedNumber = val[val.length-1]
+                    this.drawNumber(generatedNumber);
+                }
+                else
+                {
+                    console.log('RESETT');
+                    this.stopGame();
+                }
             },
             complete: () => {
                 
@@ -323,7 +335,8 @@ export class BingoGame{
                 observer.next(val);
                 //console.log(observer);
                 if(val.length >= 75)
-                {
+                { 
+                    this.stopGame();
                     observer.complete();
                 }
             });

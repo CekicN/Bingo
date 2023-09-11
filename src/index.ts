@@ -4,10 +4,12 @@ import { BingoGame } from "./bingoGame";
 
 const numberDisplay:HTMLDivElement = document.querySelector('#number-display');
 let startBtn:HTMLButtonElement = document.querySelector('#start-btn');
+let resetBtn:HTMLButtonElement = document.querySelector('#reset');
 let usernameInput:HTMLInputElement = document.querySelector('#username');
 let numOfTicketsInput:HTMLInputElement = (<HTMLInputElement>document.querySelector('#numOfTickets'));
 
 numberDisplay.style.display = "none";
+resetBtn.style.display = "none";
 let bingo = new BingoGame();
 
 let cb:boolean = false;
@@ -21,7 +23,8 @@ async function startGame()
   if(cb && username)
   {
     numberDisplay.style.display = "flex";
-
+    resetBtn.style.display = "block";
+    
     bingo.startGame();
 
     bingo.logUser(usernameInput.value, 100);
