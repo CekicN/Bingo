@@ -5,6 +5,8 @@ import { ticket } from "./ticketModel";
 
 const numberDisplay = document.querySelector('#number-display');
 const playerBoard = document.querySelector('#tickets');
+const numberList = document.querySelector('#numberList');
+
 let startBtn:HTMLButtonElement = document.querySelector('#start-btn');
 let resetBtn:HTMLButtonElement = document.querySelector('#reset');
 
@@ -352,6 +354,10 @@ export class BingoGame{
         div.textContent = number.toString();
         div.className = "numberItem";
         numberDisplay.appendChild(div);
+
+
+        let listItem = createDiv(numberList, "listItem")
+        listItem.textContent = number.toString();
     }
     drawTable(ticket:ticket)
     {

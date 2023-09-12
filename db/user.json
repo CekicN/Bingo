@@ -2,11 +2,19 @@
   "Users": [
     {
       "username": "Nikola",
-      "price": 224
+      "price": 6324
     },
     {
       "username": "Stevan",
       "price": 102
+    },
+    {
+      "username": "Marta",
+      "price": 2665
+    },
+    {
+      "username": "Andjela",
+      "price": 3100
     }
   ]
 }

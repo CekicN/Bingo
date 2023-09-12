@@ -39,7 +39,9 @@ body {
   /* animation: rotacija 2s infinite linear;
   transform-origin: bottom left; */
 }
-
+.listItem{
+  margin-right: 10px;
+}
 @keyframes rotacija {
   0% {
     transform: rotate(0);
