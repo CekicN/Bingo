@@ -58,29 +58,33 @@ export class BingoGame{
                 }
                 else
                 {
-                    console.log('RESETT');
                     this.stopGame();
                 }
             },
             complete: () => {
                 
-            const winTickets = document.querySelectorAll(".win");
-            // console.log(winTickets.length);
-            //isplata para korisniku
-            if(winTickets.length > 0)
-            {
-                let pay = this.userSubject.value.price + (winTickets.length - numOfTickets) * coins;
-                pay += selectMode.value == "1" ? numOfTickets*coins*0.5 : numOfTickets*coins * 1.5;
+                const winTickets = document.querySelectorAll(".win");
                 
+                //isplata para korisniku
+                let pay = this.userSubject.value.price;
                 const name = this.userSubject.value.username;
-                
+                if(winTickets.length > 0)
+                {
+                    pay += (winTickets.length - numOfTickets) * coins;
+                    pay += selectMode.value == "1" ? numOfTickets*coins*0.5 : numOfTickets*coins * 1.5;
+                    alert(`Zaradili ste i imate ${pay}`);
+                }
+                else
+                {
+                    pay -= coins*numOfTickets;
+                    alert(`Izgubili ste, imate ${pay}`);
+                }
                 const user:User = {
                     username:name,
                     price:pay
                 }
 
                 this.userSubject.next(user);
-                alert("Zaradjeno " + pay);
                 fetch("http://localhost:3000/Users/"+name.toString(), {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -88,122 +92,10 @@ export class BingoGame{
                 }).then(p => p.json()
                 .then(q => console.log(q)))
                 .catch(err => console.log(err));
-
-                }
-                else
-                {
-                    alert("Izgubili ste");
-                    location.reload();
-                }
             }
         })
 
         this.addTicket(generatedNumber$);
-
-        // this.tickets$.subscribe((tickets) => {
-        //     tickets.forEach((ticket) => this.drawTable(ticket));
-        // })
-        // const generatedNumber$ = this.generateNumbers().subscribe(value => {
-        //     const generatedNumber = value[value.length-1]
-        //     this.drawNumber(generatedNumber);
-                
-        //     this.tickets$.value.forEach(ticket => {
-                
-        //         let listOfNumbers = ticket.listOfNumbers;
-        //         if (selectMode.value == "2") {
-        //             listOfNumbers = listOfNumbers.filter((val: number) => val % 2 == 0);
-        //         } else if (selectMode.value == "3") {
-        //             listOfNumbers = listOfNumbers.filter((val: number) => val % 2 != 0);
-        //         }
-        //         if (listOfNumbers.includes(generatedNumber)) {
-        //             let div = playerBoard.querySelector(`#div_${generatedNumber}`);
-        //             div.classList.add("nadjen_bg");
-        //             ticket.counter++
-        //         }
-        //     })
-        // });
-
-        // const ticketsSubscription = this.tickets$.pipe(
-        //     mergeMap((ticket) => {
-        //         return generatedNumber$.pipe(
-        //             map((generatedNumbers) => {
-        //                 console.log(generatedNumbers);
-        //                 const generatedNumber = generatedNumbers[generatedNumbers.length-1]
-        //                 this.drawNumber(generatedNumber);
-
-        //                 let listOfNumbers = ticket.listOfNumbers;
-        //                 if (selectMode.value == "2") {
-        //                     listOfNumbers = listOfNumbers.filter((val: number) => val % 2 == 0);
-        //                 } else if (selectMode.value == "3") {
-        //                     listOfNumbers = listOfNumbers.filter((val: number) => val % 2 != 0);
-        //                 }
-        //                 if (listOfNumbers.includes(generatedNumber)) {
-        //                     let div = playerBoard.querySelector(`#div_${generatedNumber}`);
-        //                     div.classList.add("nadjen_bg");
-        //                     ticket.counter++
-        //                 }
-        //                 return {generatedNumbers, ticket};
-        //                 })
-        //             );
-        //         })
-        //   )
-        
-        
-        
-        // const winningTicket$ = this.tickets$.pipe(
-        //     switchMap((ticket) => {
-        //       return generatedNumber$.pipe(
-        //         scan((acc, generatedNumbers) => {
-        //             console.log(ticket.id)
-        //             const generatedNumber = generatedNumbers[generatedNumbers.length-1]
-        //             let listOfNumbers = ticket.listOfNumbers;//classic
-        //             if(selectMode.value == "2")
-        //             {
-        //                 listOfNumbers = listOfNumbers.filter((val:number) => val % 2 == 0);
-        //             }
-        //             else if(selectMode.value == "3")
-        //             {
-        //                 listOfNumbers = listOfNumbers.filter((val:number) => val % 2 != 0);
-        //             }
-        //             if (listOfNumbers.includes(generatedNumber)) {
-        //                 acc.push(generatedNumber);
-        //                 ticket.counter++;
-        //                 if(ticket.counter == 15)
-        //                 {
-        //                     const win = <HTMLDivElement>document.querySelector(`#win_${ticket.id}`);
-        //                     ticket.win = true;
-        //                     win.className = "win";
-        //                 }
-        //             }
-        //             return acc;
-        //         }, []),
-        //         // map((winningNumbers) => {
-        //         //     //console.log(ticket)
-        //         //     let winner;
-        //         //     if(selectMode.value == "2")
-        //         //     {
-        //         //         winner = winningNumbers.length >= 5;
-        //         //     }
-        //         //     else if(selectMode.value == "3")
-        //         //     {
-        //         //         winner = winningNumbers.length >= 5;
-        //         //     }
-        //         //     else
-        //         //     {
-        //         //         winner = ticket.counter >= 15;//classic
-        //         //     }
-        //         //     if(winner)
-        //         //     {
-        //         //         const win = <HTMLDivElement>document.querySelector(`#win_${ticket.id}`);
-        //         //         ticket.win = true;
-        //         //         win.className = "win";
-        //         //     }
-
-        //         //     return winner;
-        //         // })
-        //       );
-        //     })
-        //   ).subscribe();
           
          
     } 
@@ -248,17 +140,18 @@ export class BingoGame{
                     listOfNumbers = listOfNumbers.filter((val: number) => val % 2 != 0);
                 }
                 if (listOfNumbers.includes(generatedNumber)) {
+                    
                     let ticketDiv:HTMLDivElement = playerBoard.querySelector(`#ticket_${ticket.id}`);
                     let div = ticketDiv.querySelector(`.div_${generatedNumber}`);
                     div.classList.add("nadjen_bg");
+                    
                     ticket.counter++
-                    console.log(ticket, ticket.counter);
+                    
                     if(ticket.counter == mode)
                     {
-                     ticket.win.next(true);   
+                        ticket.win.next(true);   
                     }
                 }
-                // console.log(ticket, generatedNumber);
             })
 
             const winnerSubscription = ticket.win.subscribe((value) => {
